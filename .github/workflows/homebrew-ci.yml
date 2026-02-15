@@ -1,0 +1,38 @@
+name: homebrew-ci
+
+on:
+  pull_request:
+    paths:
+      - 'Formula/**'
+      - '.github/workflows/homebrew-ci.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'Formula/**'
+      - '.github/workflows/homebrew-ci.yml'
+
+jobs:
+  audit:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Tap repository
+        run: |
+          brew tap pavanpaik/chatty "${GITHUB_WORKSPACE}"
+
+      - name: Style formulas
+        run: |
+          for f in Formula/*.rb; do
+            brew style "$f"
+          done
+
+      - name: Audit formulas
+        run: |
+          for f in Formula/*.rb; do
+            brew audit --strict --online "$f"
+          done
